@@ -1,5 +1,6 @@
 #include "SDL_ime.h"
 #include "SDL_ibus.h"
+#include "SDL_fcitx.h"
 
 typedef SDL_bool (*_SDL_IME_Init)();
 typedef void (*_SDL_IME_Quit)();
@@ -21,11 +22,14 @@ static void
 InitIME()
 {
     static SDL_bool inited = SDL_FALSE;
+    const char *im_module = NULL;
 
     if (inited == SDL_TRUE)
         return ;
 
     inited = SDL_TRUE;
+    // TODO:
+    // better move every ime implenment to a shared library
 
     // default to IBus
 #ifdef HAVE_IBUS_IBUS_H
@@ -37,6 +41,21 @@ InitIME()
      SDL_IME_UpdateTextRect_Real = SDL_IBus_UpdateTextRect;
      SDL_IME_PumpEvents_Real = SDL_IBus_PumpEvents;
 #endif
+
+    im_module = SDL_getenv("SDL_IM_MODULE");
+    if (im_module) {
+        if (SDL_strcmp(im_module, "fcitx") == 0) {
+#ifdef HAVE_FCITX_FRONTEND_H
+            SDL_IME_Init_Real = SDL_Fcitx_Init;
+            SDL_IME_Quit_Real = SDL_Fcitx_Quit;
+            SDL_IME_SetFocus_Real = SDL_Fcitx_SetFocus;
+            SDL_IME_Reset_Real = SDL_Fcitx_Reset;
+            SDL_IME_ProcessKeyEvent_Real = SDL_Fcitx_ProcessKeyEvent;
+            SDL_IME_UpdateTextRect_Real = SDL_Fcitx_UpdateTextRect;
+            SDL_IME_PumpEvents_Real = SDL_Fcitx_PumpEvents;
+#endif
+        }
+    }
 }
 
 SDL_bool
