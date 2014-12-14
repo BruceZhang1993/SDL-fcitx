@@ -53,13 +53,10 @@
 #include <X11/extensions/xf86vmode.h>
 #endif
 
-#ifdef HAVE_DBUS_DBUS_H
 #include "../../core/linux/SDL_dbus.h"
-#endif
+#include "../../core/linux/SDL_ime.h"
 
-#ifdef HAVE_IBUS_IBUS_H
-#include "../../core/linux/SDL_ibus.h"
-#endif
+
 
 #include "SDL_x11dyn.h"
 
