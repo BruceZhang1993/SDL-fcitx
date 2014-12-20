@@ -31,6 +31,8 @@ typedef struct _FcitxClient
     char icname[IC_NAME_MAX];
 
     int id;
+
+    SDL_Rect cursor_rect;
 } FcitxClient;
 
 static FcitxClient fcitx_client;
@@ -356,6 +358,11 @@ SDL_Fcitx_Init()
 {
     fcitx_client.dbus = SDL_DBus_GetContext();
 
+    fcitx_client.cursor_rect.x = -1;
+    fcitx_client.cursor_rect.y = -1;
+    fcitx_client.cursor_rect.w = 0;
+    fcitx_client.cursor_rect.h = 0;
+
     SDL_snprintf(fcitx_client.servicename, IC_NAME_MAX,
             "%s-%d",
             FCITX_DBUS_SERVICE, GetDisplayNumber());
@@ -385,6 +392,7 @@ void
 SDL_Fcitx_Reset(void)
 {
     FcitxClientICCallMethod(&fcitx_client, "Reset");
+    FcitxClientICCallMethod(&fcitx_client, "CloseIC");
 }
 
 SDL_bool
@@ -439,11 +447,15 @@ SDL_Fcitx_UpdateTextRect(SDL_Rect *rect)
     SDL_Window *focused_win = NULL;
     SDL_SysWMinfo info;
     int x = 0, y = 0;
-    SDL_Rect cursor = {0};
+    SDL_Rect *cursor = &fcitx_client.cursor_rect;
 
     SDL_DBusContext *dbus = fcitx_client.dbus;
     DBusMessage *msg = NULL;
     DBusConnection *conn;
+
+    if (rect) {
+        SDL_memcpy(cursor, rect, sizeof(SDL_Rect));
+    }
 
     focused_win = SDL_GetKeyboardFocus();
     if (!focused_win) {
@@ -469,12 +481,16 @@ SDL_Fcitx_UpdateTextRect(SDL_Rect *rect)
     }
 #endif
 
-    if (rect) {
-        SDL_memcpy(&cursor, rect, sizeof(SDL_Rect));
+    if (cursor->x == -1 && cursor->y == -1 && cursor->w == 0 && cursor->h == 0) {
+        // move to bottom left
+        int w = 0, h = 0;
+        SDL_GetWindowSize(focused_win, &w, &h);
+        cursor->x = 0;
+        cursor->y = h;
     }
 
-    x += cursor.x;
-    y += cursor.y;
+    x += cursor->x;
+    y += cursor->y;
 
     msg = FcitxClientICNewMethod(&fcitx_client, "SetCursorRect");
     if (msg == NULL)
@@ -483,8 +499,8 @@ SDL_Fcitx_UpdateTextRect(SDL_Rect *rect)
     dbus->message_append_args(msg,
             DBUS_TYPE_INT32, &x,
             DBUS_TYPE_INT32, &y,
-            DBUS_TYPE_INT32, &cursor.w,
-            DBUS_TYPE_INT32, &cursor.h,
+            DBUS_TYPE_INT32, &cursor->w,
+            DBUS_TYPE_INT32, &cursor->h,
             DBUS_TYPE_INVALID);
 
     conn = dbus->session_conn;
