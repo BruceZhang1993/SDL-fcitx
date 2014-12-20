@@ -33,13 +33,13 @@ InitIME()
 
     // default to IBus
 #ifdef HAVE_IBUS_IBUS_H
-     SDL_IME_Init_Real = SDL_IBus_Init;
-     SDL_IME_Quit_Real = SDL_IBus_Quit;
-     SDL_IME_SetFocus_Real = SDL_IBus_SetFocus;
-     SDL_IME_Reset_Real = SDL_IBus_Reset;
-     SDL_IME_ProcessKeyEvent_Real = SDL_IBus_ProcessKeyEvent;
-     SDL_IME_UpdateTextRect_Real = SDL_IBus_UpdateTextRect;
-     SDL_IME_PumpEvents_Real = SDL_IBus_PumpEvents;
+    SDL_IME_Init_Real = SDL_IBus_Init;
+    SDL_IME_Quit_Real = SDL_IBus_Quit;
+    SDL_IME_SetFocus_Real = SDL_IBus_SetFocus;
+    SDL_IME_Reset_Real = SDL_IBus_Reset;
+    SDL_IME_ProcessKeyEvent_Real = SDL_IBus_ProcessKeyEvent;
+    SDL_IME_UpdateTextRect_Real = SDL_IBus_UpdateTextRect;
+    SDL_IME_PumpEvents_Real = SDL_IBus_PumpEvents;
 #endif
 
     im_module = SDL_getenv("SDL_IM_MODULE");
